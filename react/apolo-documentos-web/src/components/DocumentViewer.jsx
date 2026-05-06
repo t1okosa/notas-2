@@ -24,8 +24,9 @@ import { PDF_WORKER_URL, PDF_CMAP_URL, PDF_FONTS_URL } from '@/config/env'
 import { colors } from '@/config/colors'
 import { LoadingState } from './LoadingState'
 
-// react-pdf usa su propio worker, apuntamos al mismo archivo que ya existe en public/
-pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString()
+// react-pdf@10 usa pdfjs-dist@5 (anidado en su node_modules), no compatible con el v3 del proyecto.
+// El script sync-pdfjs-assets.mjs copia ese worker a public/ en predev/prebuild.
+pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.react-pdf.min.mjs'
 
 const VIEWER_MODES = {
   PDFJS: 'pdfjs',

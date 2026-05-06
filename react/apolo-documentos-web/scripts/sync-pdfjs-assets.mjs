@@ -7,7 +7,7 @@
  * Sin esto, los PDFs que referencian las 14 fuentes estandar (Helvetica,
  * Times, etc.) sin embeberlas se renderizan como glifos vacios en pdfjs 3.x.
  */
-import { cpSync, existsSync, mkdirSync, rmSync } from 'node:fs'
+import { copyFileSync, cpSync, existsSync, mkdirSync, rmSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -36,4 +36,14 @@ for (const { src, dst } of targets) {
   rmSync(dst, { recursive: true, force: true })
   cpSync(src, dst, { recursive: true })
   console.log(`[sync-pdfjs-assets] ${src.replace(projectRoot, '.')}  ->  ${dst.replace(projectRoot, '.')}`)
+}
+
+// Worker de pdfjs-dist v5 que usa react-pdf (instalado como dependencia anidada)
+const reactPdfWorkerSrc = resolve(projectRoot, 'node_modules/react-pdf/node_modules/pdfjs-dist/build/pdf.worker.min.mjs')
+const reactPdfWorkerDst = resolve(publicDir, 'pdf.worker.react-pdf.min.mjs')
+if (existsSync(reactPdfWorkerSrc)) {
+  copyFileSync(reactPdfWorkerSrc, reactPdfWorkerDst)
+  console.log(`[sync-pdfjs-assets] ${reactPdfWorkerSrc.replace(projectRoot, '.')}  ->  ${reactPdfWorkerDst.replace(projectRoot, '.')}`)
+} else {
+  console.warn('[sync-pdfjs-assets] react-pdf pdfjs worker no encontrado — react-pdf mode puede fallar.')
 }
