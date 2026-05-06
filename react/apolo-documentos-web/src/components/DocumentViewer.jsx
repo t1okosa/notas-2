@@ -17,6 +17,8 @@ import {
   DocumentPdfRegular,
   ChevronLeftRegular,
   ChevronRightRegular,
+  ZoomInRegular,
+  ZoomOutRegular,
 } from '@fluentui/react-icons'
 import { PDF_WORKER_URL, PDF_CMAP_URL, PDF_FONTS_URL } from '@/config/env'
 import { colors } from '@/config/colors'
@@ -30,6 +32,18 @@ const VIEWER_MODES = {
   NATIVE: 'native',
   REACT_PDF: 'react-pdf',
 }
+
+const NATIVE_ZOOM_LEVELS = [
+  { value: '50', label: '50%' },
+  { value: '75', label: '75%' },
+  { value: 'page-fit', label: 'Ajustar página' },
+  { value: 'page-width', label: 'Ajustar ancho' },
+  { value: '100', label: '100%' },
+  { value: '125', label: '125%' },
+  { value: '150', label: '150%' },
+  { value: '200', label: '200%' },
+]
+const NATIVE_ZOOM_DEFAULT = 'page-width'
 
 const useStyles = makeStyles({
   container: {
@@ -129,6 +143,7 @@ export const DocumentViewer = ({ document, onBack, onPrint }) => {
   const [viewerMode, setViewerMode] = useState(VIEWER_MODES.PDFJS)
   const [numPages, setNumPages] = useState(null)
   const [currentPage, setCurrentPage] = useState(1)
+  const [nativeZoom, setNativeZoom] = useState(NATIVE_ZOOM_DEFAULT)
 
   const zoomPluginInstance = zoomPlugin()
   const { ZoomInButton, ZoomOutButton, ZoomPopover } = zoomPluginInstance
@@ -147,6 +162,7 @@ export const DocumentViewer = ({ document, onBack, onPrint }) => {
   useEffect(() => {
     setCurrentPage(1)
     setNumPages(null)
+    setNativeZoom(NATIVE_ZOOM_DEFAULT)
   }, [document?.pdfBase64, viewerMode])
 
   const onDocumentLoadSuccess = useCallback(({ numPages: n }) => {
@@ -159,6 +175,20 @@ export const DocumentViewer = ({ document, onBack, onPrint }) => {
     () => setCurrentPage((p) => Math.min(p + 1, numPages ?? 1)),
     [numPages]
   )
+
+  const nativeZoomOut = useCallback(() => {
+    setNativeZoom((current) => {
+      const idx = NATIVE_ZOOM_LEVELS.findIndex((z) => z.value === current)
+      return NATIVE_ZOOM_LEVELS[Math.max(idx - 1, 0)].value
+    })
+  }, [])
+
+  const nativeZoomIn = useCallback(() => {
+    setNativeZoom((current) => {
+      const idx = NATIVE_ZOOM_LEVELS.findIndex((z) => z.value === current)
+      return NATIVE_ZOOM_LEVELS[Math.min(idx + 1, NATIVE_ZOOM_LEVELS.length - 1)].value
+    })
+  }, [])
 
   return (
     <div className={styles.container}>
@@ -231,6 +261,31 @@ export const DocumentViewer = ({ document, onBack, onPrint }) => {
               </>
             )}
 
+            {/* Controles de zoom en modo nativo */}
+            {viewerMode === VIEWER_MODES.NATIVE && (
+              <>
+                <Button
+                  appearance="subtle"
+                  size="small"
+                  icon={<ZoomOutRegular />}
+                  onClick={nativeZoomOut}
+                  disabled={nativeZoom === NATIVE_ZOOM_LEVELS[0].value}
+                  aria-label="Reducir zoom"
+                />
+                <Text className={styles.reactPdfPageLabel}>
+                  {NATIVE_ZOOM_LEVELS.find((z) => z.value === nativeZoom)?.label}
+                </Text>
+                <Button
+                  appearance="subtle"
+                  size="small"
+                  icon={<ZoomInRegular />}
+                  onClick={nativeZoomIn}
+                  disabled={nativeZoom === NATIVE_ZOOM_LEVELS[NATIVE_ZOOM_LEVELS.length - 1].value}
+                  aria-label="Aumentar zoom"
+                />
+              </>
+            )}
+
             {/* Controles de paginacion solo en modo react-pdf */}
             {viewerMode === VIEWER_MODES.REACT_PDF && numPages && (
               <>
@@ -279,7 +334,7 @@ export const DocumentViewer = ({ document, onBack, onPrint }) => {
           {viewerMode === VIEWER_MODES.NATIVE && (
             <div className={styles.iframeArea}>
               <iframe
-                src={`${fileUrl}#toolbar=0&navpanes=0&scrollbar=1`}
+                src={`${fileUrl}#toolbar=0&navpanes=0&scrollbar=1&zoom=${nativeZoom}`}
                 className={styles.iframeViewer}
                 title={document?.fileName ?? document?.NombreInforme ?? 'Documento PDF'}
               />
