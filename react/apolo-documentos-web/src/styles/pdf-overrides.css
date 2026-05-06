@@ -1,0 +1,47 @@
+/*
+ * Overrides para aislar el visor de PDF (@react-pdf-viewer / pdfjs)
+ * del reset CSS global que aplica FluentProvider y global.css.
+ *
+ * FluentProvider + global.css inyectan reglas que afectan canvas y calculos de fuentes:
+ *  - max-width: 100% en canvas -> escala incorrecta del render -> texto como cuadrados
+ *  - font-size reset en * -> rompe calculos de posicion del text layer
+ *  - box-sizing: border-box en * -> afecta dimensiones del canvas
+ */
+
+/* Neutralizar box-sizing: border-box del reset global en TODOS los elementos del visor */
+.rpv-core__viewer *,
+.rpv-core__viewer *::before,
+.rpv-core__viewer *::after {
+  box-sizing: content-box !important;
+}
+
+/* Evita que Fluent/global.css escale el canvas del PDF */
+.rpv-core__viewer canvas {
+  max-width: none !important;
+  max-height: none !important;
+  box-sizing: content-box !important;
+  display: block !important;
+}
+
+/* Aisla el text layer de los resets de font de Fluent */
+.rpv-core__text-layer span {
+  font-size: inherit !important;
+  box-sizing: content-box !important;
+  line-height: normal !important;
+}
+
+/* Evita que el box-sizing de Fluent afecte el contenedor del visor */
+.rpv-core__viewer {
+  box-sizing: content-box !important;
+}
+
+.rpv-core__inner-page {
+  box-sizing: content-box !important;
+}
+
+/* Re-aplicar border-box solo a elementos UI propios del visor (botones, toolbar) */
+.rpv-core__minimal-button,
+.rpv-zoom__popover-target,
+.rpv-zoom__popover-body {
+  box-sizing: border-box !important;
+}
