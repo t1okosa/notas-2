@@ -121,7 +121,7 @@ const useStyles = makeStyles({
     flex: '1',
     minHeight: 0,
     overflowY: 'auto',
-    backgroundColor: '#525659',
+    backgroundColor: colors.white,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
